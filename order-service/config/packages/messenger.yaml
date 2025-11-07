@@ -1,0 +1,23 @@
+framework:
+    messenger:
+        transports:
+            amqp:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    exchange:
+                        name: micro
+                        type: direct
+                    queues:
+                        q.order.products:
+                            binding_keys: [ product.upserted, product.quantity.updated ]
+                        q.order.completion:
+                            binding_keys: [ order.completion ]
+            sync:
+                dsn: 'sync://'
+
+        routing:
+            Microservices\SharedBundle\Message\ProductUpsertedMessage: amqp
+            Microservices\SharedBundle\Message\ProductQuantityUpdatedMessage: amqp
+            Microservices\SharedBundle\Message\OrderPlacedMessage: amqp
+            App\Message\CompleteOrderMessage: amqp
+

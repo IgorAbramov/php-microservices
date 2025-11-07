@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: microservices_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - microservices_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres_product:
+    image: postgres:15-alpine
+    container_name: microservices_postgres_product
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_USER: product_user
+      POSTGRES_PASSWORD: product_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_product_data:/var/lib/postgresql/data
+    networks:
+      - microservices_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U product_user -d product_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres_order:
+    image: postgres:15-alpine
+    container_name: microservices_postgres_order
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: order_user
+      POSTGRES_PASSWORD: order_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_order_data:/var/lib/postgresql/data
+    networks:
+      - microservices_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_user -d order_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  product-service:
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
+    container_name: microservices_product_service
+    ports:
+      - "8001:8000"
+    environment:
+      DATABASE_URL: "postgresql://product_user:product_password@postgres_product:5432/product_db?serverVersion=15&charset=utf8"
+      MESSENGER_TRANSPORT_DSN: "amqp://admin:admin@rabbitmq:5672/%2f/messages"
+      APP_ENV: dev
+      APP_SECRET: product_service_secret_key_change_in_production
+      APP_DEBUG: "1"
+    volumes:
+      - ./product-service:/var/www/html
+      - ./shared-bundle:/var/www/shared-bundle
+    depends_on:
+      postgres_product:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices_network
+    working_dir: /var/www/html
+
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    container_name: microservices_order_service
+    ports:
+      - "8002:8000"
+    environment:
+      DATABASE_URL: "postgresql://order_user:order_password@postgres_order:5432/order_db?serverVersion=15&charset=utf8"
+      MESSENGER_TRANSPORT_DSN: "amqp://admin:admin@rabbitmq:5672/%2f/messages"
+      APP_ENV: dev
+      APP_SECRET: order_service_secret_key_change_in_production
+      APP_DEBUG: "1"
+    volumes:
+      - ./order-service:/var/www/html
+      - ./shared-bundle:/var/www/shared-bundle
+    depends_on:
+      postgres_order:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices_network
+    working_dir: /var/www/html
+
+networks:
+  microservices_network:
+    driver: bridge
+
+volumes:
+  rabbitmq_data:
+  postgres_product_data:
+  postgres_order_data:
+

@@ -1,0 +1,9 @@
+services:
+    _defaults:
+        autowire: false
+        autoconfigure: false
+
+    Microservices\SharedBundle\:
+        resource: '../src/*'
+        exclude: '../src/{DependencyInjection,Entity,Message,DTO,Tests}'
+

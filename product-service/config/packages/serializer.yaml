@@ -1,0 +1,12 @@
+framework:
+    serializer:
+        enabled: true
+        mapping:
+            paths: []
+
+when@test:
+    framework:
+        serializer:
+            mapping:
+                paths: ['%kernel.project_dir%/config/serializer']
+

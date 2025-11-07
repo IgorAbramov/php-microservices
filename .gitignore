@@ -1,0 +1,30 @@
+/vendor/
+/.env
+/.env.local
+/.env.*.local
+/.phpunit.result.cache
+/var/
+/node_modules/
+.DS_Store
+*.log
+
+# Symfony
+product-service/var/
+order-service/var/
+product-service/.env
+order-service/.env
+product-service/.env.local
+order-service/.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Code style tools
+.php-cs-fixer.cache
+.php-cs-fixer.php.backup
+rector.php.backup
+

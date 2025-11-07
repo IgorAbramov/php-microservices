@@ -1,0 +1,85 @@
+@startuml Microservices: Communication and Product Quantity Update
+
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title Microservices: Communication and Product Quantity Update
+
+actor "Client" as Client
+participant "Order Service" as OrderService
+participant "RabbitMQ\nExchange: micro" as RabbitMQ
+participant "Product Service" as ProductService
+database "Order DB" as OrderDB
+database "Product DB" as ProductDB
+
+== Create/Update Product ==
+
+Client -> ProductService: POST /api/products
+activate ProductService
+ProductService -> ProductDB: Save product
+ProductDB --> ProductService: Product saved
+ProductService -> RabbitMQ: ProductUpsertedMessage\n(routing_key: product.upserted)
+deactivate ProductService
+
+RabbitMQ -> OrderService: ProductUpsertedMessage\n(queue: q.order.products)
+activate OrderService
+OrderService -> OrderDB: Update local product copy
+OrderDB --> OrderService: Product updated
+deactivate OrderService
+
+== Create Order ==
+
+Client -> OrderService: POST /api/orders
+activate OrderService
+OrderService -> OrderDB: Check product availability
+OrderDB --> OrderService: Product found
+OrderService -> OrderDB: Create order (status: PROCESSING)
+OrderDB --> OrderService: Order created
+OrderService -> RabbitMQ: OrderPlacedMessage\n(routing_key: order.placed)
+deactivate OrderService
+
+== Decrease Product Quantity ==
+
+RabbitMQ -> ProductService: OrderPlacedMessage\n(queue: q.product.orders)
+activate ProductService
+ProductService -> ProductDB: Find product
+ProductDB --> ProductService: Product found
+ProductService -> ProductDB: Decrease product quantity
+ProductDB --> ProductService: Quantity updated
+ProductService -> RabbitMQ: ProductQuantityUpdatedMessage\n(routing_key: product.quantity.updated)
+deactivate ProductService
+
+== Update Local Quantity Copy ==
+
+RabbitMQ -> OrderService: ProductQuantityUpdatedMessage\n(queue: q.order.products)
+activate OrderService
+OrderService -> OrderDB: Update product quantity
+OrderDB --> OrderService: Quantity updated
+deactivate OrderService
+
+== Schedule Order Completion ==
+
+OrderService -> OrderService: OrderCreatedEvent
+activate OrderService
+OrderService -> OrderService: OrderCreatedEventListener
+OrderService -> OrderService: OrderProcessingService.processOrder()
+OrderService -> RabbitMQ: CompleteOrderMessage\n(routing_key: order.completion)\n(delay: 10 seconds)
+deactivate OrderService
+
+... After 10 seconds ...
+
+== Complete Order ==
+
+RabbitMQ -> OrderService: CompleteOrderMessage\n(queue: q.order.completion)
+activate OrderService
+OrderService -> OrderService: CompleteOrderMessageHandler
+OrderService -> OrderService: OrderCompletionService.completeOrder()
+OrderService -> OrderDB: Update order status (COMPLETED)
+OrderDB --> OrderService: Order completed
+deactivate OrderService
+
+@enduml
+

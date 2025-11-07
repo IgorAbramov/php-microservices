@@ -1,0 +1,18 @@
+framework:
+    messenger:
+        transports:
+            amqp:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    exchange:
+                        name: micro
+                        type: direct
+                    queues:
+                        q.product.orders:
+                            binding_keys: [ order.placed ]
+
+        routing:
+            Microservices\SharedBundle\Message\ProductUpsertedMessage: amqp
+            Microservices\SharedBundle\Message\ProductQuantityUpdatedMessage: amqp
+            Microservices\SharedBundle\Message\OrderPlacedMessage: amqp
+

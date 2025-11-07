@@ -1,0 +1,19 @@
+api_platform:
+    title: Product Service API
+    version: 1.0.0
+    formats:
+        jsonld: ['application/ld+json']
+        json: ['application/json']
+    patch_formats:
+        json: ['application/merge-patch+json']
+    error_formats:
+        jsonld: ['application/ld+json']
+        jsonproblem: ['application/problem+json']
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']
+    collection:
+        pagination:
+            enabled: true
+
