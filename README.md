@@ -21,9 +21,9 @@ php-microservices/
 - Docker and Docker Compose
 - Make (optional, for using Makefile)
 
-## Quick Start
+## How to Start
 
-### 1. Install Dependencies
+#### 1. Install Dependencies
 
 ```bash
 make install
@@ -36,7 +36,7 @@ cd ../product-service && composer install
 cd ../order-service && composer install
 ```
 
-### 2. Start All Services
+#### 2. Start All Services
 
 ```bash
 make up
@@ -47,16 +47,50 @@ Or:
 docker-compose up -d
 ```
 
-### 3. Run Migrations
+#### 3. Run Migrations
 
 ```bash
 make migrate
 ```
 
+#### 4. Start Message Consumers
+
+```bash
+make start-consumers
+```
+
+To stop consumers:
+```bash
+make stop-consumers
+```
+
+### 5. Run Tests
+
+```bash
+make test
+```
+
+This will run tests for both services. You can also run tests for individual services:
+
+```bash
+make test-order    # Run tests for order-service only
+make test-product  # Run tests for product-service only
+```
+
+Or manually:
+```bash
+cd order-service && vendor/bin/phpunit
+cd product-service && vendor/bin/phpunit
+```
+
 ## Available Services
 
 - **Product Service**: http://localhost:8001
+  - **API Documentation (Swagger)**: http://localhost:8001/api/docs
+  - **API Entry Point**: http://localhost:8001/api
 - **Order Service**: http://localhost:8002
+  - **API Documentation (Swagger)**: http://localhost:8002/api/docs
+  - **API Entry Point**: http://localhost:8002/api
 - **RabbitMQ Management**: http://localhost:15672 (admin/admin)
 - **PostgreSQL Product**: localhost:5433
 - **PostgreSQL Order**: localhost:5434
@@ -68,3 +102,6 @@ make migrate
 The project includes PlantUML sequence diagrams that describe the communication flow between microservices and the product quantity update process.
 
 **Location**: `docs/microservices-communication.puml`
+
+## Postman collection 
+`./PHP microservices.postman_collection.json`

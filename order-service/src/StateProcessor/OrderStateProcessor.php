@@ -47,7 +47,7 @@ readonly class OrderStateProcessor implements ProcessorInterface
             throw new BadRequestHttpException('productId is required');
         }
 
-        $product = $this->productRepository->findById($productId);
+        $product = $this->productRepository->find($productId);
 
         if (! $product instanceof Product) {
             throw new BadRequestHttpException('Product not found');

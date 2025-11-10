@@ -25,7 +25,7 @@ readonly class ProductSyncService
         $productId = Uuid::fromString($productDTO->id);
         $this->logger->info(\sprintf('Product %s sync started...', $productId));
 
-        $product = $this->productRepository->findById($productId);
+        $product = $this->productRepository->find($productId);
 
         if (! $product instanceof Product) {
             $product = new Product(id: $productId, name: $productDTO->name, price: $productDTO->price, quantity: $productDTO->quantity);

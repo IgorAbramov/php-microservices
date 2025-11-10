@@ -25,7 +25,7 @@ readonly class ProductQuantityUpdateService
         $productId = Uuid::fromString($message->productId);
         $this->logger->info(\sprintf('Updating product %s quantity to %d', $productId->toString(), $message->quantity));
 
-        $product = $this->productRepository->findById($productId);
+        $product = $this->productRepository->find($productId);
 
         if (! $product instanceof Product) {
             $this->logger->warning(\sprintf('Product %s not found for quantity update', $productId->toString()));

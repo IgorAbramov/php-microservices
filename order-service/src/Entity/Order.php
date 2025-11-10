@@ -38,7 +38,6 @@ class Order
     public function __construct(
         #[ORM\ManyToOne(targetEntity: Product::class)]
         #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id', nullable: false)]
-        #[Groups(['order:read'])]
         private ?Product $product = null,
         #[ORM\Column(type: 'string', length: 255)]
         #[Groups(['order:read', 'order:write'])]
@@ -57,7 +56,6 @@ class Order
 
     #[ApiProperty(identifier: true)]
     #[Groups(['order:read'])]
-    #[SerializedName('orderId')]
     public function getId(): Uuid
     {
         return $this->id;
